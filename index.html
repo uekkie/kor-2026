@@ -1,0 +1,502 @@
+<!doctype html>
+<html lang="ja">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Kaigi on Rails 2026 My Schedule</title>
+  <style>
+    :root {
+      --bg: #f6f7f9;
+      --panel: #fff;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --line: #e5e7eb;
+      --magenta: #e43d86;
+      --lime: #84b63f;
+      --accent: #111827;
+      --selected: #eef6ff;
+    }
+
+    * {
+      box-sizing: border-box
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Sans", "Noto Sans JP", sans-serif
+    }
+
+    button,
+    input {
+      font: inherit
+    }
+
+    .app {
+      max-width: 1100px;
+      margin: auto;
+      padding: 28px 18px 80px
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      gap: 20px;
+      align-items: flex-start;
+      margin-bottom: 20px
+    }
+
+    h1 {
+      margin: 0 0 6px;
+      font-size: 28px
+    }
+
+    .sub {
+      color: var(--muted);
+      font-size: 14px
+    }
+
+    .tabs {
+      display: flex;
+      gap: 5px;
+      background: #e9eaee;
+      padding: 4px;
+      border-radius: 12px
+    }
+
+    .tab {
+      border: 0;
+      background: transparent;
+      padding: 9px 14px;
+      border-radius: 9px;
+      color: #666;
+      cursor: pointer
+    }
+
+    .tab.active {
+      background: white;
+      color: #111;
+      font-weight: 800;
+      box-shadow: 0 1px 4px #0001
+    }
+
+    .toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 14px 16px;
+      margin-bottom: 20px
+    }
+
+    .stats {
+      font-size: 14px
+    }
+
+    .stats strong {
+      font-size: 20px
+    }
+
+    .actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap
+    }
+
+    .btn {
+      border: 1px solid var(--line);
+      background: #fff;
+      border-radius: 10px;
+      padding: 9px 12px;
+      cursor: pointer
+    }
+
+    .btn.primary {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+      font-weight: 800
+    }
+
+    .day {
+      display: none
+    }
+
+    .day.active {
+      display: block
+    }
+
+    .day-title {
+      font-size: 18px;
+      font-weight: 900;
+      margin: 22px 0 10px
+    }
+
+    .legend {
+      display: grid;
+      grid-template-columns: 90px 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 10px;
+      color: #666;
+      font-size: 12px;
+      font-weight: 800
+    }
+
+    .hall-head {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 10px 12px;
+      display: flex;
+      gap: 8px;
+      align-items: center
+    }
+
+    .bar {
+      width: 7px;
+      height: 22px;
+      border-radius: 999px
+    }
+
+    .bar.magenta {
+      background: var(--magenta)
+    }
+
+    .bar.lime {
+      background: var(--lime)
+    }
+
+    .slot {
+      display: grid;
+      grid-template-columns: 90px 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 10px
+    }
+
+    .time {
+      padding: 16px 8px 0 0;
+      text-align: right;
+      font-size: 12px;
+      color: var(--muted);
+      font-variant-numeric: tabular-nums
+    }
+
+    .session {
+      position: relative;
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 15px;
+      padding: 14px;
+      cursor: pointer;
+      min-height: 110px;
+      transition: .15s
+    }
+
+    .session:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 18px #0000000d
+    }
+
+    .session.selected {
+      background: var(--selected);
+      border-color: #9bbde0;
+      box-shadow: 0 0 0 1px #9bbde055
+    }
+
+    .session.empty {
+      visibility: hidden
+    }
+
+    .check {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      width: 24px;
+      height: 24px;
+      border-radius: 7px;
+      border: 2px solid #cbd5e1;
+      background: #fff;
+      display: grid;
+      place-items: center;
+      font-size: 15px;
+      font-weight: 900;
+      color: #fff
+    }
+
+    .session.selected .check {
+      background: #111827;
+      border-color: #111827
+    }
+
+    .lang {
+      display: inline-block;
+      background: #f2f3f5;
+      border-radius: 6px;
+      padding: 3px 6px;
+      font-size: 10px;
+      font-weight: 800;
+      margin-bottom: 8px
+    }
+
+    .title {
+      font-size: 14px;
+      font-weight: 850;
+      line-height: 1.45;
+      padding-right: 26px
+    }
+
+    .speaker {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 8px
+    }
+
+    .hall-mini {
+      font-size: 11px;
+      color: #777;
+      margin-top: 10px
+    }
+
+    .export {
+      margin-top: 28px;
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 17px
+    }
+
+    .export h2 {
+      font-size: 17px;
+      margin: 0 0 5px
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 260px;
+      margin-top: 12px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 12px;
+      background: #fafafa;
+      resize: vertical;
+      font: 13px/1.7 ui-monospace, SFMono-Regular, Menlo, monospace
+    }
+
+    .note {
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 12px
+    }
+
+    @media(max-width:740px) {
+      .header {
+        flex-direction: column
+      }
+
+      .toolbar {
+        align-items: flex-start;
+        flex-direction: column
+      }
+
+      .legend,
+      .slot {
+        grid-template-columns: 58px 1fr
+      }
+
+      .legend .hall-head:nth-child(3) {
+        display: none
+      }
+
+      .slot .session:nth-child(3) {
+        grid-column: 2
+      }
+
+      .time {
+        font-size: 11px
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="app">
+    <div class="header">
+      <div>
+        <h1>Kaigi on Rails 2026</h1>
+        <div class="sub">My Schedule · 見たいセッションをクリックして選択</div>
+      </div>
+      <div class="tabs">
+        <button class="tab active" data-day="day1">Day 1 · 10/16</button>
+        <button class="tab" data-day="day2">Day 2 · 10/17</button>
+      </div>
+    </div>
+
+    <div class="toolbar">
+      <div class="stats">選択中 <strong id="selectedCount">0</strong> セッション</div>
+      <div class="actions">
+        <button class="btn" id="clearAll">すべて解除</button>
+        <button class="btn primary" id="jumpExport">Markdownを確認</button>
+      </div>
+    </div>
+
+    <section class="day active" id="day1">
+      <div class="day-title">Day 1 — 2026-10-16 (Fri)</div>
+      <div class="legend">
+        <div>TIME</div>
+        <div class="hall-head"><span class="bar magenta"></span>Magenta Hall</div>
+        <div class="hall-head"><span class="bar lime"></span>Lime Hall</div>
+      </div>
+      <div id="day1Slots"></div>
+    </section>
+
+    <section class="day" id="day2">
+      <div class="day-title">Day 2 — 2026-10-17 (Sat)</div>
+      <div class="legend">
+        <div>TIME</div>
+        <div class="hall-head"><span class="bar magenta"></span>Magenta Hall</div>
+        <div class="hall-head"><span class="bar lime"></span>Lime Hall</div>
+      </div>
+      <div id="day2Slots"></div>
+    </section>
+
+    <section class="export" id="exportArea">
+      <h2>2日分をMarkdownで出力</h2>
+      <div class="sub">日付 → 時間 / ホール / セッションタイトル の順で出力します。</div>
+      <div class="actions" style="margin-top:12px">
+        <button class="btn primary" id="generate">Markdownを生成</button>
+        <button class="btn" id="copy">コピー</button>
+      </div>
+      <textarea id="output" readonly
+        placeholder="# Kaigi on Rails 2026&#10;&#10;## 2026-10-16 (Fri)&#10;- 13:30–14:00 / Magenta Hall / ..."></textarea>
+      <div class="note">選択状態はこのブラウザの localStorage に保存されます。</div>
+    </section>
+  </div>
+
+  <script>
+    const schedule = [
+      { id: "d1-1120-m", day: "day1", date: "2026-10-16", label: "Fri", time: "11:20–12:00", hall: "Magenta Hall", lang: "EN", title: "Keynote: Where the tracks go next", speaker: "dhh" },
+      { id: "d1-1330-m", day: "day1", date: "2026-10-16", label: "Fri", time: "13:30–14:00", hall: "Magenta Hall", lang: "JA", title: "Active Record Connection Adaptersにおける長年の課題に再び取り組む", speaker: "yahonda" },
+      { id: "d1-1330-l", day: "day1", date: "2026-10-16", label: "Fri", time: "13:30–14:00", hall: "Lime Hall", lang: "JA", title: "FactoryBotをやめればRSpecは速くなるのか？", speaker: "nissyi-gh" },
+      { id: "d1-1410-m", day: "day1", date: "2026-10-16", label: "Fri", time: "14:10–14:25", hall: "Magenta Hall", lang: "JA", title: "AIエージェントのデバッグ能力を向上させよう — AI時代にRailsが輝く理由", speaker: "rira100000000" },
+      { id: "d1-1410-l", day: "day1", date: "2026-10-16", label: "Fri", time: "14:10–14:25", hall: "Lime Hall", lang: "JA", title: "Local CI × GitHub Actions ― 長所を活かすハイブリッドCIの実践", speaker: "gogutan" },
+      { id: "d1-1435-m", day: "day1", date: "2026-10-16", label: "Fri", time: "14:35–15:05", hall: "Magenta Hall", lang: "EN", title: "Inertia Rails: The One-Person Framework with React & Friends", speaker: "skryukov" },
+      { id: "d1-1435-l", day: "day1", date: "2026-10-16", label: "Fri", time: "14:35–15:05", hall: "Lime Hall", lang: "JA", title: "Domain Modeling with Vanilla Rails: 「操作」から再考するRailsの設計論", speaker: "yasaichi" },
+      { id: "d1-1550-m", day: "day1", date: "2026-10-16", label: "Fri", time: "15:50–16:05", hall: "Magenta Hall", lang: "JA", title: "PumaからFalconに移行したRailsアプリケーションでの実践", speaker: "falcon8823" },
+      { id: "d1-1550-l", day: "day1", date: "2026-10-16", label: "Fri", time: "15:50–16:05", hall: "Lime Hall", lang: "JA", title: "現場と育てるRailsモデリング 〜Spreadsheetから始めたモデル設計〜", speaker: "siroemk" },
+      { id: "d1-1615-m", day: "day1", date: "2026-10-16", label: "Fri", time: "16:15–16:45", hall: "Magenta Hall", lang: "EN", title: "Herb in Rails 8.2: Your ERB views, now HTML-aware", speaker: "marcoroth" },
+      { id: "d1-1615-l", day: "day1", date: "2026-10-16", label: "Fri", time: "16:15–16:45", hall: "Lime Hall", lang: "JA", title: "ActionController meets Protocol Buffers… たのしい API スキーマ定義!", speaker: "sorah" },
+      { id: "d1-1655-m", day: "day1", date: "2026-10-16", label: "Fri", time: "16:55–17:10", hall: "Magenta Hall", lang: "JA", title: "小さく作ってわかるRailsの仕組み 〜mini-rails〜", speaker: "Hitoshi-Noborikawa" },
+      { id: "d1-1655-l", day: "day1", date: "2026-10-16", label: "Fri", time: "16:55–17:10", hall: "Lime Hall", lang: "JA", title: "Railsバージョンを4倍にした話 〜Rails 2系から8系へ〜", speaker: "skytomo221" },
+      { id: "d1-1720-m", day: "day1", date: "2026-10-16", label: "Fri", time: "17:20–17:50", hall: "Magenta Hall", lang: "JA", title: "Event is what happens", speaker: "moro" },
+      { id: "d1-1720-l", day: "day1", date: "2026-10-16", label: "Fri", time: "17:20–17:50", hall: "Lime Hall", lang: "JA", title: "Railsのためのパスキー実践入門 〜マルチテナントSaaSでの意思決定〜", speaker: "utakaha" },
+      { id: "d1-1800-m", day: "day1", date: "2026-10-16", label: "Fri", time: "18:00–18:30", hall: "Magenta Hall", lang: "JA", title: "真のREST 2026", speaker: "tkawa" },
+      { id: "d1-1800-l", day: "day1", date: "2026-10-16", label: "Fri", time: "18:00–18:30", hall: "Lime Hall", lang: "JA", title: "全ての永続トークンを、生まれる前に消し去りたい！", speaker: "sylph01" },
+
+      { id: "d2-1015-m", day: "day2", date: "2026-10-17", label: "Sat", time: "10:15–10:55", hall: "Magenta Hall", lang: "JA", title: "Keynote", speaker: "matz" },
+      { id: "d2-1105-m", day: "day2", date: "2026-10-17", label: "Sat", time: "11:05–11:20", hall: "Magenta Hall", lang: "JA", title: "作れる、でも消せるか？──安全に「枯らして消す」機能削除術", speaker: "ksbmyk" },
+      { id: "d2-1105-l", day: "day2", date: "2026-10-17", label: "Sat", time: "11:05–11:20", hall: "Lime Hall", lang: "JA", title: "デプロイの先まで全部面倒を見る ― Kamal を社内 PaaS に育てた話", speaker: "dkan75" },
+      { id: "d2-1130-m", day: "day2", date: "2026-10-17", label: "Sat", time: "11:30–12:00", hall: "Magenta Hall", lang: "EN", title: "The Revenge of the Cucumber: Safety Nets for AI Code", speaker: "Gawyn" },
+      { id: "d2-1130-l", day: "day2", date: "2026-10-17", label: "Sat", time: "11:30–12:00", hall: "Lime Hall", lang: "JA", title: "Zen and the Art of File Upload Maintenance", speaker: "udzura" },
+      { id: "d2-1330-m", day: "day2", date: "2026-10-17", label: "Sat", time: "13:30–13:45", hall: "Magenta Hall", lang: "JA", title: "RailsはAIという責務をどう受け入れるのか — AIという新しい責務をRailsらしく設計する", speaker: "aoki-ryusei" },
+      { id: "d2-1330-l", day: "day2", date: "2026-10-17", label: "Sat", time: "13:30–13:45", hall: "Lime Hall", lang: "JA", title: "Hypertext on Rails — HATEOAS が示す Rails の正しさ", speaker: "taiju" },
+      { id: "d2-1355-m", day: "day2", date: "2026-10-17", label: "Sat", time: "13:55–14:25", hall: "Magenta Hall", lang: "JA", title: "ActionCableの相手はブラウザだけじゃない — Railsでデバイス群をリアルタイム管制する", speaker: "yujiteshima" },
+      { id: "d2-1355-l", day: "day2", date: "2026-10-17", label: "Sat", time: "13:55–14:25", hall: "Lime Hall", lang: "JA", title: "Railsで挑む大量データ永続化 〜600億件を永続化するための設計とボトルネックとの戦い〜", speaker: "sho-work" },
+      { id: "d2-1435-m", day: "day2", date: "2026-10-17", label: "Sat", time: "14:35–15:05", hall: "Magenta Hall", lang: "EN", title: "How Reasonable Decisions Created a Security Incident", speaker: "pwim" },
+      { id: "d2-1435-l", day: "day2", date: "2026-10-17", label: "Sat", time: "14:35–15:05", hall: "Lime Hall", lang: "JA", title: "Browser Spec: HotwireをRubyでテストする", speaker: "takahashim" },
+      { id: "d2-1550-m", day: "day2", date: "2026-10-17", label: "Sat", time: "15:50–16:05", hall: "Magenta Hall", lang: "JA", title: "Refining Active Record", speaker: "shugo" },
+      { id: "d2-1550-l", day: "day2", date: "2026-10-17", label: "Sat", time: "15:50–16:05", hall: "Lime Hall", lang: "JA", title: "その Valkey 使いこなしていますか？", speaker: "onk" },
+      { id: "d2-1615-m", day: "day2", date: "2026-10-17", label: "Sat", time: "16:15–16:45", hall: "Magenta Hall", lang: "JA", title: "How to Design Configuration for Rails Applications", speaker: "willnet" },
+      { id: "d2-1615-l", day: "day2", date: "2026-10-17", label: "Sat", time: "16:15–16:45", hall: "Lime Hall", lang: "JA", title: "3回つくってわかった、定期実行ジョブ基盤の本質情報", speaker: "takai" },
+      { id: "d2-1655-m", day: "day2", date: "2026-10-17", label: "Sat", time: "16:55–17:25", hall: "Magenta Hall", lang: "JA", title: "Web Framework Benchmark Battle 2026, Any%", speaker: "amatsuda" },
+      { id: "d2-1735-m", day: "day2", date: "2026-10-17", label: "Sat", time: "17:35–18:05", hall: "Magenta Hall", lang: "EN", title: "Solid Queue: two years on Rails", speaker: "rosa" }
+    ];
+
+    const selected = new Set(JSON.parse(localStorage.getItem("kor2026-selected") || "[]"));
+
+    function groupsFor(day) {
+      const map = new Map();
+      schedule.filter(s => s.day === day).forEach(s => {
+        if (!map.has(s.time)) map.set(s.time, []);
+        map.get(s.time).push(s);
+      });
+      return map;
+    }
+
+    function card(s) {
+      const el = document.createElement("div");
+      el.className = "session" + (selected.has(s.id) ? " selected" : "");
+      el.dataset.id = s.id;
+      el.innerHTML = `<div class="check">${selected.has(s.id) ? "✓" : ""}</div>
+    <div class="lang">${s.lang}</div>
+    <div class="title">${s.title}</div>
+    <div class="speaker">${s.speaker}</div>
+    <div class="hall-mini">${s.hall}</div>`;
+      el.onclick = () => toggle(s.id);
+      return el;
+    }
+
+    function renderDay(day, mountId) {
+      const mount = document.getElementById(mountId);
+      mount.innerHTML = "";
+      for (const [time, items] of groupsFor(day)) {
+        const row = document.createElement("div"); row.className = "slot";
+        const t = document.createElement("div"); t.className = "time"; t.innerHTML = time.replace("–", "<br>– ");
+        row.appendChild(t);
+        for (const hall of ["Magenta Hall", "Lime Hall"]) {
+          const item = items.find(x => x.hall === hall);
+          if (item) row.appendChild(card(item));
+          else { const e = document.createElement("div"); e.className = "session empty"; row.appendChild(e); }
+        }
+        mount.appendChild(row);
+      }
+    }
+
+    function toggle(id) {
+      if (selected.has(id)) selected.delete(id); else selected.add(id);
+      localStorage.setItem("kor2026-selected", JSON.stringify([...selected]));
+      render();
+    }
+
+    function render() {
+      renderDay("day1", "day1Slots"); renderDay("day2", "day2Slots");
+      document.getElementById("selectedCount").textContent = selected.size;
+    }
+
+    document.querySelectorAll(".tab").forEach(btn => btn.onclick = () => {
+      document.querySelectorAll(".tab").forEach(b => b.classList.remove("active"));
+      document.querySelectorAll(".day").forEach(d => d.classList.remove("active"));
+      btn.classList.add("active"); document.getElementById(btn.dataset.day).classList.add("active");
+    });
+
+    function markdown() {
+      const picked = schedule.filter(s => selected.has(s.id));
+      let out = "# Kaigi on Rails 2026 参加予定\n";
+      for (const day of ["day1", "day2"]) {
+        const xs = picked.filter(s => s.day === day);
+        if (!xs.length) continue;
+        const head = xs[0];
+        out += `\n## ${head.date} (${head.label})\n`;
+        xs.forEach(s => { out += `- ${s.time} / ${s.hall} / ${s.title}\n`; });
+      }
+      return out.trim();
+    }
+
+    document.getElementById("generate").onclick = () => document.getElementById("output").value = markdown();
+    document.getElementById("copy").onclick = async () => {
+      const out = document.getElementById("output"); if (!out.value) out.value = markdown();
+      try { await navigator.clipboard.writeText(out.value); const b = document.getElementById("copy"); b.textContent = "コピーしました"; setTimeout(() => b.textContent = "コピー", 1200) }
+      catch { out.select(); document.execCommand("copy") }
+    };
+    document.getElementById("clearAll").onclick = () => { selected.clear(); localStorage.removeItem("kor2026-selected"); render(); document.getElementById("output").value = "" };
+    document.getElementById("jumpExport").onclick = () => { document.getElementById("output").value = markdown(); document.getElementById("exportArea").scrollIntoView({ behavior: "smooth" }) };
+
+    render();
+  </script>
+</body>
+
+</html>
